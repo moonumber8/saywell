@@ -1,0 +1,51 @@
+{
+  "name": "ai",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.mjs",
+    "publish:serve": "node publish-server.mjs",
+    "dev:all": "concurrently -k -n api,web -c green,cyan \"npm:server\" \"npm:dev\"",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "test": "node --experimental-strip-types --test rag.test.mjs curriculum-files.test.mjs book-import.test.mjs course-planner.test.mjs qwen-realtime.test.mjs qwen-chat.test.mjs qwen-transcription.test.mjs qwen-tts.test.mjs kokoro-tts.test.mjs microphone.test.mjs lesson-activities.test.mjs lesson-stream.test.mjs speech-coach.test.mjs speech-match.test.mjs publish-server.test.mjs",
+    "test:corpus": "node --experimental-strip-types --test demo.test.mjs structured-course.test.mjs",
+    "db:up": "docker compose up -d qdrant",
+    "db:stop": "docker compose stop qdrant",
+    "rag:index": "node index-curriculum.mjs",
+    "demo:prepare": "node prepare-demo.mjs",
+    "course:prepare": "node prepare-course-glossary.mjs && node prepare-course-dialogue.mjs",
+    "preview": "vite preview",
+    "audio:setup": "powershell -NoProfile -ExecutionPolicy Bypass -File setup-kokoro.ps1"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "dotenv": "^18.0.5",
+    "express": "^5.2.1",
+    "lucide-react": "^1.52.0",
+    "mammoth": "^1.13.0",
+    "multer": "^2.4.0",
+    "pdf-parse": "^2.4.5",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "jszip": "^3.10.2",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.69.0",
+    "vite": "^6.4.4"
+  }
+}
