@@ -16,6 +16,28 @@ Open the Vite URL, normally http://localhost:5173. A fresh clone starts with an 
 
 Run `npm test` for tests that work from a clean clone. `npm run test:corpus` checks the optional locally prepared VOA corpus and needs the corresponding files in `data/`.
 
+## Move to another computer
+
+The GitHub repository contains the application, not private course data. To move the complete Saywell curriculum and its Qdrant vectors, keep Docker/Qdrant running but stop the Saywell backend so imports and course files cannot change during backup. Then run:
+
+```powershell
+npm run move:backup -- --out backups/my-move
+```
+
+Copy the entire `backups/my-move` folder privately to the new computer. It contains `data/`, Qdrant collection snapshots, and a checksum manifest. It may contain private course material and is ignored by Git. `.env`, the Kokoro model, and the private Python runtime are **not** included; copy `.env` separately through a secure channel and never commit it. Do not edit backup files.
+
+On the new computer, clone the repository, install dependencies, restore the same `.env` settings (especially `OLLAMA_EMBEDDING_MODEL` and `QDRANT_COLLECTION`), and start Docker/Qdrant. Before starting the Saywell backend or importing any courses, run:
+
+```powershell
+npm install
+npm run db:up
+npm run move:restore -- --from C:\path\to\my-move
+npm run audio:setup
+npm run dev:all
+```
+
+Restore checks file SHA-256 hashes and refuses a non-empty `data/` directory or an existing Qdrant collection with the same name. It never silently merges or overwrites another installation. The target Qdrant should be a fresh Saywell database. The backup includes all collections beginning with the configured Saywell collection prefix, including older revisions. It does not include unrelated Qdrant collections. Install the same Ollama embedding model on the destination if semantic search or later indexing is needed; the restored vectors themselves do not need regeneration. Kokoro setup needs internet on the new computer. If backup/restore fails partway through, inspect the error before retrying; a partial restore may already contain collections or files. The current migration scripts target the single-node Qdrant service in `compose.yaml`, not distributed clusters.
+
 The curriculum builder uses the Node backend and the configured AI provider: local Ollama needs no API key; Alibaba Cloud uses a server-only key. Speech recognition uses Qwen cloud transcription when configured, with browser SpeechRecognition as a selectable alternative. Use Chrome or Safari on localhost or HTTPS. Recognition checks the words heard, not pronunciation quality.
 
 Example audio uses local **Kokoro-82M v1.0** (Apache-2.0), running on the server CPU through `kokoro-onnx`. English words, sentences, listening checkpoints and coaching practice use the same American English voice (`af_heart`). Normal speed is 1.0 and slow practice is synthesized at 0.75; both have separate persistent caches in `data/tts-audio/`. No cloud TTS key or quota is needed. Audio is generated on demand without adding work to PDF import. `POST /api/speaking/audio` accepts `{text, speed: "normal" | "slow"}` (up to 600 English characters) and returns PCM16 WAV at 24 kHz. One private Python worker keeps the model in memory, limits CPU inference to four threads, serializes requests, and terminates canceled inference. The client unlocks AudioContext inside the user click before fetching, stops playback when recording starts or the page is hidden, and unlocks listening answers only when playback finishes. Service failures remain visible. Qwen speech recognition, coaching and course planning retain their existing providers.

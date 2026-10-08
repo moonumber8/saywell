@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 data/
+backups/
 models/
 data/embedding-index.json
 data/imports/
